@@ -1,6 +1,7 @@
 // Craftoe: the sound box
 
 // Volume display init
+const int volumeLEDs[4] = {1, 2, 3, 4}; //the LED pins
 
 // Ultrasound sensor init
 const int ultraSoundSignal = 10;
@@ -10,7 +11,7 @@ const int ultraSoundSignal = 10;
 int pos;
 Servo myservo;
 int arrayPosition;
-int array[5];
+int array[20];
 
 // Pushbutton init
 
@@ -24,7 +25,7 @@ void setup()
   Serial.begin(9600); // for debugging
 
   arrayPosition = 0;
-  for(int i=0; i<5; i++) {
+  for(int i=0; i<20; i++) {
     array[i] = 0;
   }
 
@@ -39,14 +40,11 @@ void setup()
 
 
 void loop() 
-{ 
-
-  // Volume display: 4 LEDs
+{
 
   // Ultrasound sensor: tell how far person is from speaker
-  if(arrayPosition == 5) arrayPosition = 0;
+  if(arrayPosition == 20) arrayPosition = 0;
   pos = ping();
-  Serial.println(pos);
   pos = map(pos, 0, 21405, 0, 180);
   array[arrayPosition] = pos;
   arrayPosition++;
@@ -54,6 +52,21 @@ void loop()
   // Servo output: position indicates sensor reading
   pos = 180 - average_of_array();
   myservo.write(pos);
+  
+  // Volume display: 4 LEDs
+  //read the number of LEDs to turn on,
+  //this is sent from a python script on the computer
+  Serial.write(pos); //send the detected distance to the python script
+  if(Serial.available()>0)
+  {
+    int data = Serial.read(); //get the number of LEDs to turn on from the python script
+    for(int i=0; i<4; i++) {
+      digitalWrite(volumeLEDs[i], LOW); //turn off the LEDs
+    }
+    for(int i=0; i<data; i++) {
+      digitalWrite(volumeLEDs[i], HIGH); //turn on the necessary LEDs
+    }
+  }
 
   // Pushbutton: play/pause
 
@@ -76,12 +89,8 @@ unsigned long ping(){
  
  unsigned long average_of_array() {
    int sum = 0;
-   Serial.print("array(");
-   for(int i=0; i<5; i++) {
+   for(int i=0; i<20; i++) {
      sum += array[i];
-     Serial.print(array[i]);
-     Serial.print(" ");
    }
-   Serial.println(")");
-   return sum / 5;
+   return sum / 20;
  }
