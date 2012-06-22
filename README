@@ -1,0 +1,13 @@
+A fun project we did one afternoon in Berea, KY to generate a lab jukebox.
+
+The idea is that we'd have music streaming in from Grooveshark, and be able to control things like volume, etc. using various buttons, sensors, etc. coming from an Arduino in the classroom.
+
+Mostly doing this to do something fun with electronics, because we've been spending way too much time doing curricular theorizing on paper.
+
+Everything is released under the GPLv3. See LICENSE.txt in this folder.
+
+June 22, 2012
+Danny Barnes
+Mel Chua
+Matt Jadud
+Sebastian Dziallas
