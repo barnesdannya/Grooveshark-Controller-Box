@@ -1,7 +1,8 @@
 // Craftoe: the sound box
 
 // Volume display init
-const int volumeLEDs[4] = {1, 2, 3, 4}; //the LED pins
+const int LEDcount = 4;
+const int volumeLEDs[LEDcount] = {1, 2, 3, 4}; //the LED pins
 
 // Ultrasound sensor init
 const int ultraSoundSignal = 10;
@@ -10,32 +11,41 @@ const int ultraSoundSignal = 10;
 #include <Servo.h>
 int pos;
 Servo myservo;
+const int arraySize = 20;
 int arrayPosition;
-int array[20];
+int array[arraySize];
 
 // Pushbutton init
+const bool PLAY = true;
+const bool PAUSE = false;
+bool playPauseState;
+const int playPausePin = 8;
 
 void setup() 
 { 
 
   // Volume display: 4 LEDs
+  for(int i=0; i<LEDcount; i++) {
+    pinMode(volumeLEDs[i], OUTPUT);
+    digitalWrite(volumeLEDs[i], LOW);
+  }
 
   // Ultrasound sensor: tell how far person is from speaker
   pinMode(ultraSoundSignal, INPUT);
   Serial.begin(9600); // for debugging
 
   arrayPosition = 0;
-  for(int i=0; i<20; i++) {
+  for(int i=0; i<arraySize; i++) {
     array[i] = 0;
   }
-
 
   // Servo output: position indicates sensor reading
   pos = 0;
   myservo.attach(9);  // attaches the servo on pin 9 to the servo object 
 
   // Pushbutton: play/pause
-
+  pinMode(playPausePin, INPUT);
+  playPauseState = PAUSE;
 } 
 
 
@@ -43,11 +53,12 @@ void loop()
 {
 
   // Ultrasound sensor: tell how far person is from speaker
-  if(arrayPosition == 20) arrayPosition = 0;
+  if(arrayPosition == arraySize) arrayPosition = 0;
   pos = ping();
-  pos = map(pos, 0, 21405, 0, 180);
+  pos = map(pos, 0, 21405, 0, 180); //map the min and max sensor values to the range of the servo
   array[arrayPosition] = pos;
-  arrayPosition++;
+  arrayPosition++; //using an array to store value history, used to move the servo based
+                    //on the average of the last 20 sensor values to make movement less erratic
 
   // Servo output: position indicates sensor reading
   pos = 180 - average_of_array();
@@ -60,16 +71,25 @@ void loop()
   if(Serial.available()>0)
   {
     int data = Serial.read(); //get the number of LEDs to turn on from the python script
-    for(int i=0; i<4; i++) {
+    for(int i=0; i<LEDcount; i++) {
       digitalWrite(volumeLEDs[i], LOW); //turn off the LEDs
     }
-    for(int i=0; i<data; i++) {
+    for(int i=0; i<data && i<LEDcount; i++) {
       digitalWrite(volumeLEDs[i], HIGH); //turn on the necessary LEDs
     }
   }
 
   // Pushbutton: play/pause
-
+  if(digitalRead(playPausePin) == LOW) { //if the button is down
+    while(digitalRead(playPausePin) == LOW) ; //wait for button up
+    if(playPauseState == PLAY) playPauseState = PAUSE;
+    else playPauseState = PLAY; //toggle the playPauseState
+    /* call to the appropriate API function
+    needs
+    to
+    go
+    here */
+  }
 } 
 
 // Get data from ultrasound sensor
@@ -89,7 +109,7 @@ unsigned long ping(){
  
  unsigned long average_of_array() {
    int sum = 0;
-   for(int i=0; i<20; i++) {
+   for(int i=0; i<arraySize; i++) {
      sum += array[i];
    }
    return sum / 20;
