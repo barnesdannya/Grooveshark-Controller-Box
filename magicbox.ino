@@ -64,7 +64,7 @@ void loop()
   Serial.println(pos); //send the detected distance to the python script
   while(Serial.available() <= 0) ; //wait for the response
   int data = Serial.parseInt(); //get the response
-  for(int i=LEDcount; i>data; i--) {
+  for(int i=LEDcount-1; i>=data && i>=0; i--) {
     digitalWrite(volumeLEDs[i], LOW); //turn off the necessary LEDs
   }
   for(int i=0; i<data && i<LEDcount; i++) {
