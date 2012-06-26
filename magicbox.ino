@@ -2,7 +2,7 @@
 
 // Volume display init
 const int LEDcount = 4;
-const int volumeLEDs[LEDcount] = {1, 2, 3, 4}; //the LED pins
+const int volumeLEDs[LEDcount] = {2, 3, 4, 5}; //the LED pins
 
 // Ultrasound sensor init
 const int ultraSoundSignal = 10;
@@ -23,7 +23,6 @@ const int playPausePin = 8;
 
 void setup() 
 { 
-
   // Volume display: 4 LEDs
   for(int i=0; i<LEDcount; i++) {
     pinMode(volumeLEDs[i], OUTPUT);
@@ -48,10 +47,8 @@ void setup()
   playPauseState = PAUSE;
 } 
 
-
 void loop() 
 {
-
   // Ultrasound sensor: tell how far person is from speaker
   if(arrayPosition == arraySize) arrayPosition = 0;
   pos = ping();
@@ -67,16 +64,15 @@ void loop()
   // Volume display: 4 LEDs
   //read the number of LEDs to turn on,
   //this is sent from a python script on the computer
-  Serial.write(pos); //send the detected distance to the python script
-  if(Serial.available()>0)
-  {
-    int data = Serial.read(); //get the number of LEDs to turn on from the python script
-    for(int i=0; i<LEDcount; i++) {
-      digitalWrite(volumeLEDs[i], LOW); //turn off the LEDs
-    }
-    for(int i=0; i<data && i<LEDcount; i++) {
-      digitalWrite(volumeLEDs[i], HIGH); //turn on the necessary LEDs
-    }
+  Serial.print('D'); //send the distance message signal
+  Serial.println(pos); //send the detected distance to the python script
+  while(Serial.available() <= 0) ; //wait for the response
+  int data = Serial.parseInt(); //get the response
+  for(int i=LEDcount; i>data; i--) {
+    digitalWrite(volumeLEDs[i], LOW); //turn off the necessary LEDs
+  }
+  for(int i=0; i<data && i<LEDcount; i++) {
+    digitalWrite(volumeLEDs[i], HIGH); //turn on the necessary LEDs
   }
 
   // Pushbutton: play/pause
@@ -93,24 +89,24 @@ void loop()
 } 
 
 // Get data from ultrasound sensor
-unsigned long ping(){
- pinMode(ultraSoundSignal, OUTPUT); // Switch signalpin to output
- digitalWrite(ultraSoundSignal, LOW); // Send low pulse
- delayMicroseconds(2); // Wait for 2 microseconds
- digitalWrite(ultraSoundSignal, HIGH); // Send high pulse
- delayMicroseconds(5); // Wait for 5 microseconds
- digitalWrite(ultraSoundSignal, LOW); // Holdoff
- pinMode(ultraSoundSignal, INPUT); // Switch signalpin to input
- digitalWrite(ultraSoundSignal, HIGH); // Turn on pullup resistor
- int value = pulseIn(ultraSoundSignal, HIGH); //Listen for echo
- if(value == 0) return ping();
- return value;
- }
- 
- unsigned long average_of_array() {
-   int sum = 0;
-   for(int i=0; i<arraySize; i++) {
-     sum += array[i];
-   }
-   return sum / 20;
- }
+unsigned long ping() {
+  pinMode(ultraSoundSignal, OUTPUT); // Switch signalpin to output
+  digitalWrite(ultraSoundSignal, LOW); // Send low pulse
+  delayMicroseconds(2); // Wait for 2 microseconds
+  digitalWrite(ultraSoundSignal, HIGH); // Send high pulse
+  delayMicroseconds(5); // Wait for 5 microseconds
+  digitalWrite(ultraSoundSignal, LOW); // Holdoff
+  pinMode(ultraSoundSignal, INPUT); // Switch signalpin to input
+  digitalWrite(ultraSoundSignal, HIGH); // Turn on pullup resistor
+  int value = pulseIn(ultraSoundSignal, HIGH); //Listen for echo
+  if(value == 0) return ping();
+  return value;
+}
+
+unsigned long average_of_array() {
+  int sum = 0;
+  for(int i=0; i<arraySize; i++) {
+    sum += array[i];
+  }
+  return sum / 20;
+}
