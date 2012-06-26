@@ -16,9 +16,6 @@ int arrayPosition;
 int array[arraySize];
 
 // Pushbutton init
-const bool PLAY = true;
-const bool PAUSE = false;
-bool playPauseState;
 const int playPausePin = 8;
 
 void setup() 
@@ -44,7 +41,6 @@ void setup()
 
   // Pushbutton: play/pause
   pinMode(playPausePin, INPUT);
-  playPauseState = PAUSE;
 } 
 
 void loop() 
@@ -78,13 +74,7 @@ void loop()
   // Pushbutton: play/pause
   if(digitalRead(playPausePin) == LOW) { //if the button is down
     while(digitalRead(playPausePin) == LOW) ; //wait for button up
-    if(playPauseState == PLAY) playPauseState = PAUSE;
-    else playPauseState = PLAY; //toggle the playPauseState
-    /* call to the appropriate API function
-    needs
-    to
-    go
-    here */
+    Serial.print('P'); //send the play/pause message signal
   }
 } 
 
